@@ -178,8 +178,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				return item;
 			};
 
-			// Handicaps may be set between 0 - 95% in steps of 5%
-			var options = Enumerable.Range(0, 20).Select(i => 5 * i);
+			// Handicaps may be set between 0 - 99% in steps of 1%
+			var options = Enumerable.Range(0, 100);
 			dropdown.ShowDropDown("TEAM_DROPDOWN_TEMPLATE", 150, options, setupItem);
 		}
 
