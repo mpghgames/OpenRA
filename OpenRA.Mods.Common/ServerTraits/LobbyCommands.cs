@@ -744,10 +744,11 @@ namespace OpenRA.Mods.Common.Server
 				teamCount = teamCount.Clamp(0, maxTeams);
 				var clients = server.LobbyInfo.Slots
 					.Select(slot => server.LobbyInfo.ClientInSlot(slot.Key))
-					.Where(c => c != null && !server.LobbyInfo.Slots[c.Slot].LockTeam);
+					.Where(c => c != null && !server.LobbyInfo.Slots[c.Slot].LockTeam)
+					.Shuffle(server.Random)
+					.ToList();
 
 				var assigned = 0;
-				var clientCount = clients.Count();
 				foreach (var player in clients)
 				{
 					// Free for all
@@ -758,7 +759,7 @@ namespace OpenRA.Mods.Common.Server
 					else if (teamCount == 1)
 						player.Team = player.Bot == null ? 1 : 2;
 					else
-						player.Team = assigned++ * teamCount / clientCount + 1;
+						player.Team = assigned++ * teamCount / clients.Count + 1;
 				}
 
 				server.SyncLobbyClients();
