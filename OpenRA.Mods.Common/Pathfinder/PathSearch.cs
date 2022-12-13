@@ -182,7 +182,10 @@ namespace OpenRA.Mods.Common.Pathfinder
 					return;
 			}
 
-			var estimatedCost = heuristic(location) * heuristicWeightPercentage / 100;
+			var estimatedCost = WeightedHeuristic(location);
+			if (estimatedCost == PathGraph.PathCostForInvalidPath)
+				return;
+
 			Graph[location] = new CellInfo(CellStatus.Open, initialCost, initialCost + estimatedCost, location);
 			var connection = new GraphConnection(location, estimatedCost);
 			openQueue.Add(connection);
@@ -244,7 +247,10 @@ namespace OpenRA.Mods.Common.Pathfinder
 				if (neighborInfo.Status == CellStatus.Open)
 					estimatedRemainingCostToTarget = neighborInfo.EstimatedTotalCost - neighborInfo.CostSoFar;
 				else
-					estimatedRemainingCostToTarget = heuristic(neighbor) * heuristicWeightPercentage / 100;
+					estimatedRemainingCostToTarget = WeightedHeuristic(neighbor);
+
+				if (estimatedRemainingCostToTarget == PathGraph.PathCostForInvalidPath)
+					continue;
 
 				recorder?.Add(currentMinNode, neighbor, costSoFarToNeighbor, estimatedRemainingCostToTarget);
 
@@ -299,6 +305,14 @@ namespace OpenRA.Mods.Common.Pathfinder
 			}
 
 			return PathFinder.NoPath;
+		}
+
+		int WeightedHeuristic(CPos cell)
+		{
+			var estimate = heuristic(cell);
+			return estimate != PathGraph.PathCostForInvalidPath
+				? estimate * heuristicWeightPercentage / 100
+				: PathGraph.PathCostForInvalidPath;
 		}
 
 		// Build the path from the destination.

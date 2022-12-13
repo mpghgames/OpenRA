@@ -780,7 +780,7 @@ namespace OpenRA.Mods.Common.Pathfinder
 				fullGraph.GetConnections, locomotor, target, target, estimatedSearchSize, pathFinderOverlay?.RecordAbstractEdges(self)))
 			{
 				var sourcesWithPathableNodes = new HashSet<CPos>(sources.Count);
-				List<CPos> unpathableNodes = null;
+				HashSet<CPos> unpathableNodes = null;
 				foreach (var (source, adjacentSource) in sourcesWithReachableNodes)
 				{
 					// Check if we have already found a route to this node before we attempt to expand the search.
@@ -792,7 +792,7 @@ namespace OpenRA.Mods.Common.Pathfinder
 						else
 						{
 							if (unpathableNodes == null)
-								unpathableNodes = new List<CPos>();
+								unpathableNodes = new HashSet<CPos>();
 							unpathableNodes.Add(adjacentSource);
 						}
 					}
@@ -804,7 +804,7 @@ namespace OpenRA.Mods.Common.Pathfinder
 						else
 						{
 							if (unpathableNodes == null)
-								unpathableNodes = new List<CPos>();
+								unpathableNodes = new HashSet<CPos>();
 							unpathableNodes.Add(adjacentSource);
 						}
 					}
@@ -815,7 +815,7 @@ namespace OpenRA.Mods.Common.Pathfinder
 
 				using (var fromSrc = GetLocalPathSearch(
 					self, sourcesWithPathableNodes, target, customCost, ignoreActor, check, laneBias, null, heuristicWeightPercentage,
-					heuristic: Heuristic(reverseAbstractSearch, estimatedSearchSize, sourcesWithPathableNodes, unpathableNodes, heuristicWeightPercentage),
+					heuristic: Heuristic(reverseAbstractSearch, estimatedSearchSize, sourcesWithPathableNodes, unpathableNodes),
 					recorder: pathFinderOverlay?.RecordLocalEdges(self)))
 					return fromSrc.FindPath();
 			}
@@ -899,11 +899,11 @@ namespace OpenRA.Mods.Common.Pathfinder
 
 					using (var fromSrc = GetLocalPathSearch(
 						self, new[] { source }, target, customCost, ignoreActor, check, laneBias, null, heuristicWeightPercentage,
-						heuristic: Heuristic(reverseAbstractSearch, estimatedSearchSize, null, null, heuristicWeightPercentage),
+						heuristic: Heuristic(reverseAbstractSearch, estimatedSearchSize, null, null),
 						recorder: pathFinderOverlay?.RecordLocalEdges(self)))
 					using (var fromDest = GetLocalPathSearch(
 						self, new[] { target }, source, customCost, ignoreActor, check, laneBias, null, heuristicWeightPercentage,
-						heuristic: Heuristic(forwardAbstractSearch, estimatedSearchSize, null, null, heuristicWeightPercentage),
+						heuristic: Heuristic(forwardAbstractSearch, estimatedSearchSize, null, null),
 						recorder: pathFinderOverlay?.RecordLocalEdges(self),
 						inReverse: true))
 						return PathSearch.FindBidiPath(fromDest, fromSrc);
@@ -1110,7 +1110,7 @@ namespace OpenRA.Mods.Common.Pathfinder
 		/// local search. So when searching from source to target, the abstract search must be from target to source.
 		/// </summary>
 		Func<CPos, int> Heuristic(PathSearch abstractSearch, int estimatedSearchSize,
-			HashSet<CPos> sources, List<CPos> unpathableNodes, int heuristicWeightPercentage)
+			HashSet<CPos> sources, HashSet<CPos> unpathableNodes)
 		{
 			var nodeForCostLookup = new Dictionary<CPos, CPos>(estimatedSearchSize);
 			var graph = (SparsePathGraph)abstractSearch.Graph;
@@ -1119,11 +1119,8 @@ namespace OpenRA.Mods.Common.Pathfinder
 				// When dealing with an unreachable source cell, the path search will check adjacent locations.
 				// These cells may be reachable, but may represent jumping into an area cut off from the target.
 				// Searching on the abstract graph would fail to provide a route in this scenario, so bail early.
-				// HACK: The path search isn't prepared for the heuristic to declare a cell unreachable,
-				// so just return some high cost that won't overflow if a heuristic weighting is applied.
-				// Also make sure to leave some room for additional costs without overflowing.
 				if (unpathableNodes != null && unpathableNodes.Contains(cell))
-					return PathGraph.PathCostForInvalidPath / heuristicWeightPercentage / 1000;
+					return PathGraph.PathCostForInvalidPath;
 
 				// All other cells searched by the heuristic are guaranteed to be reachable.
 				// So we don't need to handle an abstract cell lookup failing, or the search failing to expand.
