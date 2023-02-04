@@ -127,7 +127,7 @@ Player:
 		ID: bounty
 		Label: Kill Bounties
 		Description: Players receive cash bonuses when killing enemy units
-		Enabled: False
+		Enabled: True
 		DisplayOrder: 8
 		Prerequisites: global-bounty
 	LobbyPrerequisiteCheckbox@GLOBALFACTUNDEPLOY:
@@ -141,7 +141,7 @@ Player:
 		ID: reusable-engineers
 		Label: Reusable Engineers
 		Description: Engineers remain on the battlefield after capturing a structure
-		Enabled: False
+		Enabled: True
 		DisplayOrder: 9
 		Prerequisites: global-reusable-engineers
 	FrozenActorLayer:
