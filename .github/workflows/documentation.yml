@@ -18,7 +18,7 @@ jobs:
   prepare:
     name: Prepare version strings
     if: github.repository == 'openra/openra'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Prepare environment variables
         run: |
@@ -44,7 +44,7 @@ jobs:
     name: Update Wiki
     needs: prepare
     if: github.repository == 'openra/openra' && needs.prepare.outputs.version_type != 'bleed'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Debug output
         run: |
@@ -56,10 +56,10 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.git_tag }}
 
-      - name: Install .NET 6
+      - name: Install .NET 8
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
 
       - name: Prepare Environment
         run: |
@@ -99,7 +99,7 @@ jobs:
     name: Update docs.openra.net
     needs: prepare
     if: github.repository == 'openra/openra'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Debug output
         run: |
@@ -111,10 +111,10 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.git_tag }}
 
-      - name: Install .NET 6
+      - name: Install .NET 8
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
 
       - name: Prepare Environment
         run: |
