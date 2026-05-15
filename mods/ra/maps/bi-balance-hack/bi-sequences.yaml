@@ -1,0 +1,16 @@
+pips:
+	pip-skull:
+		Filename: pip-skull.shp
+		Offset: -2, 0
+
+icon:
+	gpsactive:
+		Filename: gpssactiveicon.shp
+
+camera:
+	icon:
+		Filename: camicon.shp
+
+lst:
+	Defaults:
+		Scale: 1.25

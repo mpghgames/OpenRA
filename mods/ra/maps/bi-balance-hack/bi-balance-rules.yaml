@@ -1,0 +1,446 @@
+^Infantry:
+	DetectCloaked:
+		DetectionTypes: Underwater, Cloak
+
+^GainsExperience:
+	GrantCondition@RANK-ELITE:
+		RequiresCondition: rank-veteran >= 3
+	DamageMultiplier@RANK-1:
+		Modifier: 91
+	DamageMultiplier@RANK-2:
+		Modifier: 83
+	-DamageMultiplier@RANK-3:
+	DamageMultiplier@RANK-ELITE:
+		Modifier: 67
+	FirepowerMultiplier@RANK-1:
+		Modifier: 110
+	FirepowerMultiplier@RANK-2:
+		Modifier: 120
+	-FirepowerMultiplier@RANK-3:
+	FirepowerMultiplier@RANK-ELITE:
+		Modifier: 120
+	-SpeedMultiplier@RANK-1:
+	-SpeedMultiplier@RANK-2:
+	-SpeedMultiplier@RANK-3:
+	-SpeedMultiplier@RANK-ELITE:
+	-ReloadDelayMultiplier@RANK-1:
+	-ReloadDelayMultiplier@RANK-2:
+	-ReloadDelayMultiplier@RANK-3:
+	ReloadDelayMultiplier@RANK-ELITE:
+		Modifier: 50
+	ChangesHealth@ELITE:
+		Delay: 75
+		DamageCooldown: 0
+	-WithDecoration@RANK-3:
+
+^GainsExperienceInfantry:
+	Inherits@GainsExperience: ^GainsExperience
+	DamageMultiplier@RANK-1:
+		Modifier: 95
+	DamageMultiplier@RANK-2:
+		Modifier: 91
+	DamageMultiplier@RANK-ELITE:
+		Modifier: 87
+	FirepowerMultiplier@RANK-1:
+		Modifier: 105
+	FirepowerMultiplier@RANK-2:
+		Modifier: 110
+	FirepowerMultiplier@RANK-ELITE:
+		Modifier: 115
+	-ReloadDelayMultiplier@RANK-ELITE:
+	-ChangesHealth@ELITE:
+
+^Infantry:
+	Inherits@2: ^GainsExperienceInfantry
+
+^InfantryExperienceHospitalOverrides:
+	-WithDecoration@RANK-3:
+
+^CommandoSkull:
+	WithDecoration@COMMANDOSKULL:
+		Image: pips
+		Sequence: pip-skull
+		Palette: effect
+		Position: TopLeft
+		ValidRelationships: Ally, Enemy, Neutral
+
+E7:
+	Inherits@COMMANDOSKULL: ^CommandoSkull
+
+SPY:
+	Inherits@COMMANDOSKULL: ^CommandoSkull
+	WithDecoration@COMMANDOSKULL:
+		RequiresCondition: tanyadisguise
+	Disguise:
+		DisguisedAsConditions:
+			e7: tanyadisguise
+
+MGG:
+	WithIdleOverlay@SPINNER:
+		PauseOnCondition: undeployed
+	CreatesShroud:
+		RequiresCondition: !undeployed
+	GrantConditionOnDeploy:
+		DeployedCondition: undeployed
+
+MIG:
+	Health:
+		HP: 10000
+
+TSLA:
+	DetectCloaked:
+		DetectionTypes: Cloak, Underwater
+
+PBOX:
+	DetectCloaked:
+		DetectionTypes: Cloak, Underwater
+
+HBOX:
+	DetectCloaked:
+		DetectionTypes: Cloak, Underwater
+
+GUN:
+	DetectCloaked:
+		DetectionTypes: Cloak, Underwater
+
+FTUR:
+	DetectCloaked:
+		DetectionTypes: Cloak, Underwater
+
+AFLD:
+	Exit@1:
+		ExitCell: 1,3
+	Exit@2:
+		RequiresCondition: !being-captured
+		ExitCell: 0,0
+		Facing: 256
+	AirstrikePower@spyplane:
+		Description: actor-afld-airstrikepower-spyplane-description
+	InfiltrateForSupportPower:
+		Types: SPY.England.Infiltrate
+	Targetable:
+		TargetTypes: GroundActor, C4, DetonateAttack, Structure, SPY.England.Infiltrate
+
+STEK:
+	InfiltrateForSupportPower:
+		Proxy: powerproxy.sonarpulse
+		Types: SpyInfiltrate
+	Targetable:
+		TargetTypes: GroundActor, C4, DetonateAttack, Structure, SpyInfiltrate
+
+ATEK:
+	GpsPower:
+		PauseOnCondition: disabled || !gpsactivated
+		ChargeInterval: 1
+		RevealDelay: 30
+		DisplayTimerRelationships: None
+		RequiresCondition: gpsactivated
+		StartFullyCharged: True
+		RequiresActiveRadar: True
+	ProduceActorPower@powergps:
+		Name: actor-atek.gpspower-name
+		Description: actor-atek.gpspower-description
+		Icon: gps
+		PauseOnCondition: disabled
+		Actors: gpsactivenoise
+		Type: GPSPower
+		ChargeInterval: 4500
+		OrderName: GPSSpawner
+		SupportPowerPaletteOrder: 20
+		LaunchSpeechNotification:
+		IncomingSpeechNotification:
+		DisplayTimerRelationships: None
+		EndChargeSpeechNotification: SatelliteReady
+		RequiresCondition: !gpsactivated
+	ProduceActorPower@gpsactivesign:
+		Name: actor-atek.produceactorpower-gpsactivesign-name
+		Description: actor-atek.produceactorpower-gpsactivesign-description
+		Icon: gpsactive
+		Actors: e1
+		Type: Infantry
+		ChargeInterval: 1501
+		SupportPowerPaletteOrder: 20
+		DisplayTimerRelationships: Ally, Neutral, Enemy
+		RequiresCondition: gpsactivated
+	GrantConditionOnPrerequisite@gpsactivation:
+		Prerequisites: gpsactiveprereq
+		Condition: gpsactivated
+	ProvidesPrerequisite@uplink:
+		Prerequisite: uplink
+	Exit@1:
+		SpawnOffset: -704,768,0
+		ExitCell: -1,2
+	Production@GPSPower:
+		Produces: GPSPower
+	InfiltrateForSupportPower:
+		Proxy: powerproxy.sonarpulse
+		Types: SpyInfiltrate
+
+gpsactivenoise:
+	Interactable:
+	EditorOnlyTooltip:
+		Name: actor-gpsactivenoise.editoronlytooltipname
+	Aircraft:
+		Repulsable: False
+	BodyOrientation:
+		QuantizedFacings: 1
+	WithSpriteBody:
+	RenderSpritesEditorOnly:
+		Image: camera
+	MapEditorData:
+		Categories: System
+	ProvidesPrerequisite@gap:
+		Prerequisite: gpsactiveprereq
+	ActorLostNotification:
+		Notification: SatelliteInitialized
+		NotifyAll: True
+	Health:
+		HP: 1
+	HitShape:
+	ChangesHealth:
+		Step: -1
+		StartIfBelow: 101
+		Delay: 1
+	SpawnActorOnDeath:
+		Actor: powergps
+		SpawnAfterDefeat: False
+	KillsSelf:
+	Buildable:
+		Queue: Infantry
+		Prerequisites: ~disabled
+	Tooltip:
+		Name: actor-gpsactivenoise.tooltipname
+
+powergps:
+	Interactable:
+	EditorOnlyTooltip:
+		Name: actor-powergps-name
+	Aircraft:
+		Repulsable: False
+	BodyOrientation:
+		QuantizedFacings: 1
+	WithSpriteBody:
+	RenderSpritesEditorOnly:
+		Image: camera
+	MapEditorData:
+		Categories: System
+	ProvidesPrerequisite@gap:
+		Prerequisite: gpsactiveprereq
+	ActorLostNotification:
+		Notification: SatelliteTerminated
+		NotifyAll: True
+	VoiceAnnouncement:
+		RequiresCondition: uplinkexists
+		Voice: Build
+	DeathSounds:
+		Voice: Die
+	Voiced:
+		VoiceSet: GPSVoice
+	Health:
+		HP: 1499
+	HitShape:
+	ChangesHealth:
+		Step: -1
+		StartIfBelow: 101
+		Delay: 1
+	GrantConditionOnPrerequisite@satelliteexists:
+		Prerequisites: uplink
+		Condition: uplinkexists
+	KillsSelf:
+		RequiresCondition: !uplinkexists
+
+MSLO:
+	NukePower:
+		ChargeInterval: 10500
+	Power:
+		Amount: -200
+
+SS:
+	Valued:
+		Cost: 750
+	Armor:
+		Type: Steel
+	Mobile:
+		TurnSpeed: 24
+		Speed: 85
+	Targetable@UNDERWATER:
+		TargetTypes: WaterActor, Ship, Submarine, Repair
+	Cloak:
+		CloakDelay: 20
+		UncloakOn: Attack, Unload, Dock, Damage, Heal
+	DetectCloaked:
+		Range: 4c0
+	AttackTurreted:
+	Turreted:
+		TurnSpeed: 512
+	-AttackFrontal:
+
+MSUB:
+	Buildable:
+		Prerequisites: ~spen, dome, ~techlevel.high
+	Armor:
+		Type: Steel
+	Mobile:
+		TurnSpeed: 16
+	Targetable@UNDERWATER:
+		TargetTypes: WaterActor, Ship, Submarine, Repair
+	Cloak:
+		CloakDelay: 20
+		UncloakOn: Attack, Unload, Dock, Damage, Heal
+	DetectCloaked:
+		Range: 7c0
+
+DD:
+	Armor:
+		Type: Steel
+	Mobile:
+		TurnSpeed: 24
+	Armament@SECONDARY:
+		Weapon: DDDepthCharge
+	DetectCloaked:
+		Range: 3c0
+
+CA:
+	Armor:
+		Type: Steel
+
+LST:
+	Armor:
+		Type: Steel
+	Cargo:
+		MaxWeight: 10
+
+PT:
+	Armor:
+		Type: Steel
+	Mobile:
+		TurnSpeed: 24
+		Speed: 128
+
+SPEN:
+	Valued:
+		Cost: 600
+	Health:
+		HP: 75000
+	DetectCloaked:
+		Range: 6c0
+	InfiltrateForSupportPower:
+		Types: SpyInfiltrate, SPY.England.Infiltrate
+	Targetable:
+		TargetTypes: WaterActor, Structure, C4, DetonateAttack, SPY.England.Infiltrate, SpyInfiltrate
+
+SYRD:
+	Valued:
+		Cost: 600
+	Health:
+		HP: 75000
+	DetectCloaked:
+		Range: 6c0
+	InfiltrateForSupportPower:
+		Types: SpyInfiltrate, SPY.England.Infiltrate
+	Targetable:
+		TargetTypes: WaterActor, Structure, C4, DetonateAttack, SPY.England.Infiltrate, SpyInfiltrate
+
+ships.upgraded:
+	ProvidesPrerequisite:
+
+SYRF:
+	Valued:
+		Cost: 60
+
+SPEF:
+	Valued:
+		Cost: 60
+
+camera.spyplane:
+	DetectCloaked:
+		DetectionTypes: Underwater
+		Range: 10c0
+
+powerproxy.sonarpulse:
+	SpawnActorPower:
+		ChargeInterval: 3250
+
+SONAR:
+	RevealsShroud:
+		Range: 10c0
+		Type: CenterPosition
+
+1TNK:
+	Mobile:
+		Speed: 103
+	SpawnActorOnDeath:
+		Actor: 1TNK.Husk
+
+1TNK.Husk:
+	Inherits: ^Husk
+	Tooltip:
+		Name: actor-1tnk-husk-name
+	ThrowsParticle@turret:
+		Anim: turret
+	TransformOnCapture:
+		IntoActor: 1tnk
+	InfiltrateForTransform:
+		IntoActor: 1tnk
+	RenderSprites:
+		Image: 1tnk.destroyed
+
+HARV:
+	Harvester:
+		SearchFromProcRadius: 9
+
+TTNK:
+	Mobile:
+		TurnSpeed: 35
+	-AttackTurreted:
+	-Turreted:
+	AttackFrontal:
+		FacingTolerance: 512
+	RevealsShroud:
+		MinRange: 5c0
+	RevealsShroud@GAPGEN:
+		Range: 5c0
+
+4TNK:
+	Mobile:
+		Speed: 50
+
+SPY.England:
+	Valued:
+		Cost: 500
+	Infiltrates:
+		Types: SPY.England.Infiltrate, SpyInfiltrate
+
+WEAP:
+	InfiltrateForSupportPower:
+		Types: SPY.England.Infiltrate
+	Targetable:
+		TargetTypes: GroundActor, C4, DetonateAttack, Structure, SPY.England.Infiltrate
+
+HPAD:
+	InfiltrateForSupportPower:
+		Types: SPY.England.Infiltrate
+	Targetable:
+		TargetTypes: GroundActor, C4, DetonateAttack, Structure, SPY.England.Infiltrate
+
+AFLD.Ukraine:
+	InfiltrateForSupportPower:
+		Types: SPY.England.Infiltrate
+	Targetable:
+		TargetTypes: GroundActor, C4, DetonateAttack, Structure, SPY.England.Infiltrate
+
+BARR:
+	InfiltrateForSupportPower:
+		Types: SPY.England.Infiltrate
+	Targetable:
+		TargetTypes: GroundActor, C4, DetonateAttack, Structure, SPY.England.Infiltrate
+
+TENT:
+	InfiltrateForSupportPower:
+		Types: SPY.England.Infiltrate
+	Targetable:
+		TargetTypes: GroundActor, C4, DetonateAttack, Structure, SPY.England.Infiltrate
+
+SILO:
+	GivesBuildableArea:
+		AreaTypes: building, fake
