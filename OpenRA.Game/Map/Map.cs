@@ -673,6 +673,37 @@ namespace OpenRA
 			Uid = ComputeUID(toPackage, MapFormat);
 		}
 
+		// HACK: sorry sorry sorry, just a poc
+		public void SaveWithBalanceRules(IReadWritePackage toPackage)
+		{
+			if (Package == toPackage)
+				throw new InvalidOperationException("Cannot clone with existing package");
+
+            // existing content
+			foreach (var file in Package.Contents)
+				toPackage.Update(file, Package.GetStream(file).ReadAllBytes());
+
+			// all files in pseudo "bi-balance-hack" map
+			foreach (var mapFolder in modData.Manifest.MapFolders)
+			{
+				// ~ prefix means optional
+				var name = mapFolder.Key.StartsWith('~') ? mapFolder.Key[1..] : mapFolder.Key;
+				var path = Path.Combine(Platform.ResolvePath(name), "bi-balance-hack");
+				if (modData.DefaultFileSystem.TryGetPackageContaining(path, out var parentPackage, out var filename))
+				{
+					var balancePackage = parentPackage.OpenPackage(filename, modData.ModFiles);
+					foreach (var file in balancePackage.Contents)
+						toPackage.Update(file, balancePackage.GetStream(file).ReadAllBytes());
+					break;
+				}
+			}
+
+			using var yamlStream = Package.GetStream("map.yaml");
+			using var extensionStream = toPackage.GetStream("_extension.yaml");
+			using var combinedStream = new MergedStream(yamlStream, extensionStream);
+			toPackage.Update("map.yaml", combinedStream.ReadAllBytes());
+		}
+
 		public byte[] SaveBinaryData()
 		{
 			var dataStream = new MemoryStream();
