@@ -1,10 +1,10 @@
 
 
-Rules: bi-balance-rules.yaml, bi-briefing-rules.yaml, bi-lobby-rules.yaml, bi-queue-limits.yaml
+Rules: bi-balance-rules.yaml, bi-briefing-rules.yaml, bi-lobby-rules.yaml, bi-queue-limits.yaml, ERCC21andBCC11-rules.yaml
 
 Weapons: bi-weapons.yaml
 
-Sequences: bi-sequences.yaml
+Sequences: bi-sequences.yaml, ERCC2-sequences.yaml
 
 Notifications: bi-notifications.yaml
 
