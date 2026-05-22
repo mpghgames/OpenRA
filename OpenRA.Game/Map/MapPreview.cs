@@ -533,11 +533,7 @@ namespace OpenRA
 					if (map.Uid != GenerationArgs.Uid)
 						throw new InvalidOperationException("Map generation UID mismatch");
 
-					// Clone with our rules
-					var cloned = new ZipFileLoader.ReadWriteZipFile();
-					map.SaveWithBalanceRules(cloned);
-
-					Game.RunAfterTick(() => UpdateFromMap(cloned, MapClassification.Generated));
+					Game.RunAfterTick(() => UpdateFromMap(map.Package, MapClassification.Generated));
 				}
 				catch (Exception e)
 				{

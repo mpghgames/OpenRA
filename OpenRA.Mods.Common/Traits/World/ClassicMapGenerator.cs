@@ -14,6 +14,7 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using OpenRA.FileSystem;
 using OpenRA.Mods.Common.MapGenerator;
 using OpenRA.Mods.Common.Terrain;
 using OpenRA.Support;
@@ -479,7 +480,14 @@ namespace OpenRA.Mods.Common.Traits
 			var terrainInfo = modData.DefaultTerrainInfo[args.Tileset];
 			var size = args.Size;
 
-			var map = new Map(modData, terrainInfo, size);
+			var basic = new Map(modData, terrainInfo, size);
+			basic.Save(new ZipFileLoader.ReadWriteZipFile());
+
+			// Clone with our rules
+			var cloned = new ZipFileLoader.ReadWriteZipFile();
+			basic.SaveWithBalanceRules(cloned);
+			var map = new Map(modData, cloned);
+
 			var actorPlans = new List<ActorPlan>();
 
 			var param = new Parameters(map, args.Settings);
