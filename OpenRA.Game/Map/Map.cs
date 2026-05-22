@@ -654,7 +654,7 @@ namespace OpenRA
 					toPackage.Update(filename, data);
 				else
 				{
-					var stream = Package.GetStream(filename);
+					var stream = toPackage.GetStream(filename);
 					if (stream == null || !Enumerable.SequenceEqual(data, stream.ReadAllBytes()))
 						toPackage.Update(filename, data);
 				}
@@ -679,7 +679,7 @@ namespace OpenRA
 			if (Package == toPackage)
 				throw new InvalidOperationException("Cannot clone with existing package");
 
-            // existing content
+			// existing content
 			foreach (var file in Package.Contents)
 				toPackage.Update(file, Package.GetStream(file).ReadAllBytes());
 
@@ -698,10 +698,27 @@ namespace OpenRA
 				}
 			}
 
-			using var yamlStream = Package.GetStream("map.yaml");
+			// _extension values replace base map
 			using var extensionStream = toPackage.GetStream("_extension.yaml");
-			using var combinedStream = new MergedStream(yamlStream, extensionStream);
-			toPackage.Update("map.yaml", combinedStream.ReadAllBytes());
+			using var baseStream = toPackage.GetStream("map.yaml");
+			var mapYaml = MiniYaml.FromStream(baseStream, "map.yaml").ToList();
+			var extYaml = MiniYaml.FromStream(extensionStream, "_extension.yaml").Where(node => node.Key.Length > 0).ToDictionary(node => node.Key);
+			foreach (var extNode in extYaml)
+			{
+				var index = mapYaml.FindIndex(n => n.Key == extNode.Key);
+				if (index >= 0)
+				{
+					mapYaml[index] = extNode.Value;
+				}
+				else
+				{
+					// HACK: map.yaml is expected to have empty lines between top-level blocks
+					mapYaml.Add(new MiniYamlNode("", ""));
+					mapYaml.Add(extNode.Value);
+				}
+			}
+
+			toPackage.Update("map.yaml", Encoding.UTF8.GetBytes(mapYaml.WriteToString()));
 		}
 
 		public byte[] SaveBinaryData()
