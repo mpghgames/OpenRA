@@ -324,8 +324,7 @@ namespace OpenRA.Mods.Cnc.Traits
 		public override Map Generate(ModData modData, MapGenerationArgs args)
 		{
 			var actorPlans = new List<ActorPlan>();
-			var terrainInfo = modData.DefaultTerrainInfo[args.Tileset];
-			var map = new Map(modData, terrainInfo, args.Size);
+			var map = CreateMap(modData, args);
 			var param = new Parameters(map, GenerateParameterYaml(modData, args));
 			var terraformer = new Terraformer(args, map, modData, actorPlans, param.Mirror, param.Rotations);
 

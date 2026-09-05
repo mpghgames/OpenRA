@@ -673,6 +673,49 @@ namespace OpenRA
 			Uid = ComputeUID(toPackage, MapFormat);
 		}
 
+		// HACK: sorry sorry sorry, just a poc
+		public void SaveWithBalanceRules(IReadWritePackage toPackage)
+		{
+			if (Package == toPackage)
+				throw new InvalidOperationException("Cannot clone with existing package");
+
+			// existing content
+			foreach (var file in Package.Contents)
+				toPackage.Update(file, Package.GetStream(file).ReadAllBytes());
+
+			// balance overlay data lives in the user support dir, outside source control;
+			// a sibling of the saved maps dir so it is never treated as a map
+			var balancePath = Platform.ResolvePath("^SupportDir|bi-balance-hack");
+			if (Directory.Exists(balancePath))
+			{
+				using var balancePackage = new Folder(balancePath);
+				foreach (var file in balancePackage.Contents)
+					toPackage.Update(file, balancePackage.GetStream(file).ReadAllBytes());
+			}
+
+			// _extension values replace base map
+			using var extensionStream = toPackage.GetStream("_extension.yaml");
+			using var baseStream = toPackage.GetStream("map.yaml");
+			var mapYaml = MiniYaml.FromStream(baseStream, "map.yaml").ToList();
+			var extYaml = MiniYaml.FromStream(extensionStream, "_extension.yaml").Where(node => node.Key.Length > 0).ToDictionary(node => node.Key);
+			foreach (var extNode in extYaml)
+			{
+				var index = mapYaml.FindIndex(n => n.Key == extNode.Key);
+				if (index >= 0)
+				{
+					mapYaml[index] = extNode.Value;
+				}
+				else
+				{
+					// HACK: map.yaml is expected to have empty lines between top-level blocks
+					mapYaml.Add(new MiniYamlNode("", ""));
+					mapYaml.Add(extNode.Value);
+				}
+			}
+
+			toPackage.Update("map.yaml", Encoding.UTF8.GetBytes(mapYaml.WriteToString()));
+		}
+
 		public byte[] SaveBinaryData()
 		{
 			var dataStream = new MemoryStream();

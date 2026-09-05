@@ -12,6 +12,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using OpenRA.FileSystem;
 using OpenRA.Mods.Common.MapGenerator;
 using OpenRA.Traits;
 
@@ -112,6 +113,21 @@ namespace OpenRA.Mods.Common.Traits
 				return FieldLoader.GetValue<int>("Players", players);
 
 			return 0;
+		}
+
+		// Creates the base map for generation. The fresh map is saved and cloned through
+		// SaveWithBalanceRules, overlaying balance iteration data from the user support dir
+		// (^SupportDir|bi-balance-hack), so generation runs against the overlaid rules and
+		// the final map includes them.
+		protected static Map CreateMap(ModData modData, MapGenerationArgs args)
+		{
+			var basic = new Map(modData, modData.DefaultTerrainInfo[args.Tileset], args.Size);
+			basic.Save(new ZipFileLoader.ReadWriteZipFile());
+
+			// Clone with our rules
+			var cloned = new ZipFileLoader.ReadWriteZipFile();
+			basic.SaveWithBalanceRules(cloned);
+			return new Map(modData, cloned);
 		}
 
 		public abstract Map Generate(ModData modData, MapGenerationArgs args);

@@ -31,7 +31,7 @@ namespace OpenRA.Mods.Common.Traits
 			if (!terrainInfo.TryGetTerrainInfo(new TerrainTile(tileType, 0), out _))
 				throw new MapGenerationException("Illegal tile type");
 
-			var map = new Map(modData, terrainInfo, args.Size);
+			var map = CreateMap(modData, args);
 			var terraformer = new Terraformer(args, map, modData, [], Symmetry.Mirror.None, 1);
 
 			terraformer.InitMap();
