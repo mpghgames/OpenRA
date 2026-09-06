@@ -41,12 +41,16 @@ namespace OpenRA
 		[FieldLoader.Require]
 		public string Author = null;
 
+		// Name of the rules overlay to apply when generating the map.
+		// Optional so that previously serialized arguments still load.
+		public string RulesOverlay = null;
+
 		public Dictionary<string, string> Options = [];
 
 		public List<MiniYamlNode> Serialize()
 		{
-			return
-			[
+			var nodes = new List<MiniYamlNode>
+			{
 				new("Uid", Uid),
 				new("Generator", Generator),
 				new("Tileset", Tileset),
@@ -54,7 +58,12 @@ namespace OpenRA
 				new("Options", new MiniYaml(null, Options.Select(o => new MiniYamlNode(o.Key, o.Value)))),
 				new("Title", Title),
 				new("Author", Author)
-			];
+			};
+
+			if (RulesOverlay != null)
+				nodes.Add(new("RulesOverlay", RulesOverlay));
+
+			return nodes;
 		}
 	}
 }

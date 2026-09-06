@@ -115,19 +115,19 @@ namespace OpenRA.Mods.Common.Traits
 			return 0;
 		}
 
-		// Creates the base map for generation. The fresh map is saved and cloned through
-		// SaveWithBalanceRules, overlaying balance iteration data from the user support dir
-		// (^SupportDir|bi-balance-hack), so generation runs against the overlaid rules and
-		// the final map includes them.
+		// Creates the base map for generation. If a rules overlay is selected,
+		// the fresh map is saved with the overlay applied, so generation runs
+		// against the overlaid rules and the final map includes them.
 		protected static Map CreateMap(ModData modData, MapGenerationArgs args)
 		{
-			var basic = new Map(modData, modData.DefaultTerrainInfo[args.Tileset], args.Size);
-			basic.Save(new ZipFileLoader.ReadWriteZipFile());
+			var map = new Map(modData, modData.DefaultTerrainInfo[args.Tileset], args.Size);
+			if (string.IsNullOrEmpty(args.RulesOverlay) || !MapGenRulesOverlay.IsPresent(modData, args.RulesOverlay))
+				return map;
 
-			// Clone with our rules
-			var cloned = new ZipFileLoader.ReadWriteZipFile();
-			basic.SaveWithBalanceRules(cloned);
-			return new Map(modData, cloned);
+			var package = new ZipFileLoader.ReadWriteZipFile();
+			map.Save(package);
+			MapGenRulesOverlay.Apply(package, args.RulesOverlay, modData);
+			return new Map(modData, package);
 		}
 
 		public abstract Map Generate(ModData modData, MapGenerationArgs args);

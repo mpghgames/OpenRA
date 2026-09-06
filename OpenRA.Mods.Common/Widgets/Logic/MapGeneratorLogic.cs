@@ -57,6 +57,12 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		[FluentReference]
 		const string MapSizeHuge = "label-map-size-huge";
 
+		[FluentReference]
+		const string RulesOverlay = "label-mapchooser-random-map-rules-overlay";
+
+		[FluentReference]
+		const string RulesOverlayNone = "label-mapchooser-random-map-rules-overlay-none";
+
 		public static readonly IReadOnlyDictionary<string, int2> MapSizes = new Dictionary<string, int2>()
 		{
 			{ MapSizeSmall, new int2(48, 60) },
@@ -77,10 +83,12 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		readonly Widget dropdownOptionTemplate;
 		readonly Widget tilesetOption;
 		readonly Widget sizeOption;
+		readonly Widget overlayOption;
 		readonly Widget parentWidget;
 
 		ITerrainInfo selectedTerrain;
 		string selectedSize;
+		string selectedOverlay;
 		bool initialGenerationDone;
 
 		volatile bool failed;
@@ -195,6 +203,37 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				sizeDropdown.ShowDropDown("LABEL_DROPDOWN_TEMPLATE", MapSizes.Count * 30, MapSizes.Keys, SetupItem);
 			};
 
+			var overlays = MapGenRulesOverlay.AvailableOverlays(modData);
+			var overlayOptionLabel = FluentProvider.GetMessage(RulesOverlay);
+			overlayOption = dropdownOptionTemplate.Clone();
+			overlayOption.Get<LabelWidget>("LABEL").GetText = () => overlayOptionLabel;
+
+			// Only shown when there are overlays to choose from
+			overlayOption.IsVisible = () => overlays.Count > 0;
+
+			var overlayDropdown = overlayOption.Get<DropDownButtonWidget>("DROPDOWN");
+			overlayDropdown.GetText = () => selectedOverlay ?? FluentProvider.GetMessage(RulesOverlayNone);
+			overlayDropdown.OnMouseDown = _ =>
+			{
+				ScrollItemWidget SetupItem(string overlay, ScrollItemWidget template)
+				{
+					bool IsSelected() => overlay == selectedOverlay;
+					void OnClick()
+					{
+						selectedOverlay = overlay;
+						generationArgs.RulesOverlay = overlay;
+						GenerateMap();
+					}
+
+					var item = ScrollItemWidget.Setup(template, IsSelected, OnClick);
+					var itemLabel = overlay ?? FluentProvider.GetMessage(RulesOverlayNone);
+					item.Get<LabelWidget>("LABEL").GetText = () => itemLabel;
+					return item;
+				}
+
+				overlayDropdown.ShowDropDown("LABEL_DROPDOWN_TEMPLATE", (overlays.Count + 1) * 30, overlays.Prepend(null), SetupItem);
+			};
+
 			var generateButton = widget.Get<ButtonWidget>("BUTTON_GENERATE");
 			generateButton.IsDisabled = () => IsGenerating;
 			generateButton.OnClick = () =>
@@ -223,6 +262,14 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				foreach (var kv in MapSizes)
 					if (kv.Value.X > generationArgs.Size.Width && kv.Value.Y <= generationArgs.Size.Width)
 						selectedSize = kv.Key;
+
+				// Fall back to no overlay if the selected one is no longer on disk
+				selectedOverlay = initialGeneratedMap.RulesOverlay;
+				if (selectedOverlay != null && !MapGenRulesOverlay.IsPresent(modData, selectedOverlay))
+				{
+					selectedOverlay = null;
+					generationArgs.RulesOverlay = null;
+				}
 
 				RefreshOptions();
 
@@ -273,9 +320,10 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		void RefreshOptions()
 		{
 			optionsPanel.RemoveChildren();
-			tilesetOption.Bounds = sizeOption.Bounds = dropdownOptionTemplate.Bounds;
+			tilesetOption.Bounds = sizeOption.Bounds = overlayOption.Bounds = dropdownOptionTemplate.Bounds;
 			optionsPanel.AddChild(tilesetOption);
 			optionsPanel.AddChild(sizeOption);
+			optionsPanel.AddChild(overlayOption);
 
 			var trueString = FieldSaver.FormatValue(true);
 			var falseString = FieldSaver.FormatValue(false);
